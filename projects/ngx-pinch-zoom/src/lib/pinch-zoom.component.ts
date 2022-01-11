@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, SimpleChanges} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, Output, OnDestroy, SimpleChanges} from '@angular/core';
 
 import {Properties} from './interfaces';
 import {defaultProperties, backwardCompatibilityProperties} from './properties';
@@ -7,26 +7,31 @@ import {IvyPinch} from './ivypinch';
 interface ComponentProperties extends Properties {
     disabled?:boolean;
     overflow?: "hidden" | "visible";
+    zoomControl?: "one-button" | "two-buttons";
     disableZoomControl?: "disable" | "never" | "auto";
     backgroundColor?: string;
+    zoomControlPosition?: "right" | "right-bottom" | "bottom";
 }
 
 export const _defaultComponentProperties:ComponentProperties = {
     overflow: "hidden",
+    zoomControl: "two-buttons",
     disableZoomControl: "auto",
-    backgroundColor: "rgba(0,0,0,0.85)"
+    backgroundColor: "rgba(0,0,0,0.85)",
+    zoomControlPosition: "right"
 }
 
 type PropertyName = keyof ComponentProperties;
 
 @Component({
-	selector: 'pinch-zoom, [pinch-zoom]',
+    selector: 'pinch-zoom, [pinch-zoom]',
     exportAs: 'pinchZoom',
     templateUrl: './pinch-zoom.component.html',
     styleUrls: ['./pinch-zoom.component.sass']
 })
 
 export class PinchZoomComponent implements OnDestroy {
+
     pinchZoom: any;
     _properties!: ComponentProperties;
     defaultComponentProperties!: ComponentProperties;
@@ -121,20 +126,28 @@ export class PinchZoomComponent implements OnDestroy {
         return this._limitZoom;
     }
 
-    @Input() disabled!: boolean;
+    @Input('disabled') disabled!: boolean;
     @Input() disablePan!: boolean;
     @Input() overflow!: "hidden" | "visible";
     @Input() zoomControlScale!: number;
+    @Input() zoomControl!: "one-button" | "two-buttons";
     @Input() disableZoomControl!: "disable" | "never" | "auto";
+    @Input() zoomControlPosition!: "right" | "right-bottom" | "bottom";
     @Input() backgroundColor!: string;
     @Input() limitPan!: boolean;
     @Input() minPanScale!: number;
     @Input() minScale!: number;
     @Input() listeners!: 'auto' | 'mouse and touch';
     @Input() wheel!: boolean;
+    @Input() fullImage!: {
+        path: string,
+        minScale?: number
+    };
     @Input() autoHeight!: boolean;
     @Input() wheelZoomFactor!: number;
     @Input() draggableImage!: boolean;
+
+    @Output() events: EventEmitter < any > = new EventEmitter();
 
     @HostBinding('style.overflow')
     get hostOverflow() {
@@ -173,6 +186,14 @@ export class PinchZoomComponent implements OnDestroy {
         return this.pinchZoom.scale;
     }
 
+    get x() {
+        return this.pinchZoom.moveX;
+    }
+
+    get y() {
+        return this.pinchZoom.moveY;
+    }
+
     get isZoomedIn() {
         return this.scale > 1;
     }
@@ -193,12 +214,12 @@ export class PinchZoomComponent implements OnDestroy {
         return this.getPropertiesValue('zoomControlScale');
     }
 
-   constructor(private elementRef: ElementRef) {
+    constructor(private elementRef: ElementRef) {
         this.defaultComponentProperties = this.getDefaultComponentProperties();
         this.applyPropertiesDefault(this.defaultComponentProperties, {});
     }
 
-    ngOnInit(){
+    ngOnInit() {
         this.initPinchZoom();
         
         /* Calls the method until the image size is available */
@@ -221,7 +242,9 @@ export class PinchZoomComponent implements OnDestroy {
             return;
         }
 
+        this.zoomControlPositionClass = this.getZoomControlPositionClass();
         this.properties['element'] = this.elementRef.nativeElement.querySelector('.pinch-zoom-content');
+        this.properties['eventHandler'] = this.events;
         this.pinchZoom = new IvyPinch(this.properties);
     }
 
@@ -229,10 +252,10 @@ export class PinchZoomComponent implements OnDestroy {
         let properties:any = {};
 
         for (var prop in changes) {
-            if (prop !== 'properties'){
+            if (prop !== 'properties') {
                 properties[prop] = changes[prop].currentValue;
             }
-            if (prop === 'properties'){
+            if (prop === 'properties') {
                 properties = changes[prop].currentValue;
             }
         }
@@ -258,7 +281,7 @@ export class PinchZoomComponent implements OnDestroy {
         this.pinchZoom.toggleZoom();
     }
 
-    isControl() {
+    isControl(mode: "one-button" | "two-buttons") {
         if (this.isDisabled) {
             return false;
         }
@@ -271,7 +294,25 @@ export class PinchZoomComponent implements OnDestroy {
             return false;
         }
 
-        return true;
+        return this.properties['zoomControl'] === mode;
+    }
+
+    getZoomControlPositionClass() {
+        const prefix = "pz-zoom-control-position-";
+
+        if (this.properties['zoomControlPosition']) {
+            return prefix + this.properties['zoomControlPosition'];
+        }
+
+        if (this.properties['zoomControl'] === "one-button") {
+            return prefix + "bottom";
+        }
+
+        if (this.properties['zoomControl'] === "two-buttons") {
+            return prefix + "right";
+        }
+
+        return undefined;
     }
 
     detectLimitZoom() {
@@ -280,7 +321,58 @@ export class PinchZoomComponent implements OnDestroy {
         }
     }
 
-    destroy() {
+    public setTransform(properties: {
+        x ? : number,
+        y ? : number,
+        scale ? : number,
+        transitionDuration ? : number
+    }) {
+        this.pinchZoom.setTransform(properties);
+    }
+
+    public setZoom(properties: {
+        scale: number,
+        center ? : number[]
+    }) {
+        this.pinchZoom.setZoom(properties);
+    }
+
+    public zoomIn() {
+        if (this.isZoomLimitReached) {
+            return;
+        }
+
+        let newScale = this.scale + this.properties['zoomControlScale'];
+
+        if (newScale > this.maxScale) {
+            newScale = this.maxScale;
+        }
+        this.setZoom({
+            scale: newScale
+        });
+    }
+
+    public zoomOut() {
+        if (this.scale <= 1) {
+            return;
+        }
+
+        let newScale = this.scale - this._zoomControlScale;
+
+        if (newScale <= 1) {
+            this.reset();
+        } else {
+            this.setZoom({
+                scale: newScale
+            });
+        }
+    }
+
+    public reset() {
+        this.pinchZoom.resetScale();
+    }
+
+    public destroy() {
         this.pinchZoom.destroy();
     }
 

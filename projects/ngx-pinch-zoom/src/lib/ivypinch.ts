@@ -41,6 +41,7 @@ export class IvyPinch {
         return this.properties.fullImage;
     }
 
+
     constructor(properties: any) {
         this.element = properties.element;
 
@@ -63,7 +64,6 @@ export class IvyPinch {
                 "wheel": "handleWheel"
             }
         });
-
 
         /* Init */
         this.setBasicStyles();
@@ -94,6 +94,26 @@ export class IvyPinch {
     }
 
 
+    /* Custom events */
+
+    emitEvent(properties: any) {
+        /*
+        this.events[properties.name] = new CustomEvent(properties.name, {
+            'detail': properties.detail
+        });
+        this.element.dispatchEvent(this.events[properties.name]);
+        */
+
+        /* Emit angular event */
+        if (this.properties.eventHandler) {
+            this.properties.eventHandler.emit({
+                name: properties.name,
+                detail: properties.detail
+            });
+        }
+    }
+
+
     /* Touchstart */
 
     handleTouchstart = (event: any) => {
@@ -103,6 +123,10 @@ export class IvyPinch {
         if (this.eventType === undefined) {
             this.getTouchstartPosition(event);
         }
+
+        this.emitEvent({
+            name: 'touchstart'
+        });
     }
 
 
@@ -129,7 +153,7 @@ export class IvyPinch {
             // Align image
             if (this.eventType === 'pinch' || 
                 this.eventType === 'pan' && this.scale > this.minPanScale) {
-
+                
                 this.alignImage();
             }
 
@@ -156,6 +180,9 @@ export class IvyPinch {
             this.eventType = undefined;
         }
 
+        this.emitEvent({
+            name: 'touchend'
+        });
         this.touches.removeEventListeners("mousemove", "handleMousemove");
     }
 
@@ -194,10 +221,23 @@ export class IvyPinch {
             this.centeringImage();
         }
 
+        this.emitEvent({
+            name: 'pan',
+            detail: {
+                moveX: this.moveX,
+                moveY: this.moveY
+            }
+        });
         this.transformElement(0);
     }
 
     handleDoubleTap = (event: any) => {
+        this.emitEvent({
+            name: 'double-tap',
+            detail: {
+                scale: this.scale
+            }
+        });
         this.toggleZoom(event);
         return;
     }
@@ -210,12 +250,10 @@ export class IvyPinch {
 
             if (!this.eventType) {
                 this.initialDistance = this.getDistance(touches);
-
                 const moveLeft0 = this.moveLeft(event, 0);
                 const moveLeft1 = this.moveLeft(event, 1);
                 const moveTop0 = this.moveTop(event, 0);
                 const moveTop1 = this.moveTop(event, 1);
-
                 this.moveXC = ((moveLeft0 + moveLeft1) / 2) - this.initialMoveX;
                 this.moveYC = ((moveTop0 + moveTop1) / 2) - this.initialMoveY;
             }
@@ -233,10 +271,19 @@ export class IvyPinch {
                 this.limitPanX();
             }
 
+            if (this.fullImage) {
+                this.replaceImagePath();            
+            }
+
+            this.emitEvent({
+                name: 'pinch',
+                detail: {
+                    scale: this.scale
+                }
+            });
             this.transformElement(0);
         }
     }
-
 
     handleWheel = (event: any) => {
         event.preventDefault();
@@ -555,6 +602,62 @@ export class IvyPinch {
         return undefined;
     }
 
+    replaceImagePath() {
+        if (!this.fullImage) {
+            return;
+        }
+
+        let minScale = this.fullImage.minScale;
+
+        if (minScale) {
+            if (this.scale < minScale) {
+                return;            
+            }
+        }
+
+        if (!minScale && this.properties.limitZoom === "original image size") {
+            if (this.scale < this.maxScale) {
+                return;
+            }
+        }
+
+        let img:any;
+        let imgTemp;
+
+        if (this.elementTarget === "IMG") {
+            img = this.element.getElementsByTagName("img")[0];
+            imgTemp = new Image();
+
+            if (img.src !== this.fullImage.path) {
+                this.emitEvent({
+                    name: 'startLoadingFullImage',
+                    detail: {
+                        url: img.src,
+                        fullImagePath: this.fullImage.path
+                    }
+                });
+
+                imgTemp.src = this.fullImage.path;
+                imgTemp.onload = () => {
+                    if (!this.fullImage) {
+                        return;
+                    }
+                    
+                    this.emitEvent({
+                        name: 'loadedFullImage',
+                        detail: {
+                            url: img.src,
+                            fullImagePath: this.fullImage.path
+                        }
+                    });
+
+                    img.src = this.fullImage.path;
+                    this.detectLimitZoom();
+                };
+            }
+        }
+    }
+
     detectLimitZoom() {
         this.maxScale = this.defaultMaxScale;
 
@@ -594,7 +697,20 @@ export class IvyPinch {
         }
     }
 
-    toggleZoom(event: any = false) {
+
+    /* Public properties and methods */
+
+    public setMoveX(value: number, transitionDuration: number): void {
+        this.moveX = value;
+        this.transformElement(transitionDuration || this.properties.transitionDuration);
+    }
+
+    public setMoveY(value: number, transitionDuration: number): void {
+        this.moveY = value;
+        this.transformElement(transitionDuration || this.properties.transitionDuration);
+    }
+
+    public toggleZoom(event: any = false) {
         if (this.initialScale === 1) {
             if (event && event.changedTouches) {
                 if (this.properties.doubleTapScale === undefined) {
@@ -612,15 +728,31 @@ export class IvyPinch {
                 this.moveY = this.initialMoveY - this.element.offsetHeight * (this.scale - 1) / 2;
             }
 
+            if (this.properties.fullImage) {
+                this.replaceImagePath();
+            }
+
             this.centeringImage();
             this.updateInitialValues();
+            this.emitEvent({
+                name: 'zoom-in',
+                detail: {
+                    scale: this.scale
+                }
+            });
             this.transformElement(this.properties.transitionDuration);
         } else {
+            this.emitEvent({
+                name: 'zoom-out',
+                detail: {
+                    scale: this.scale
+                }
+            });
             this.resetScale();
         }
     }
 
-    setZoom(properties: {
+    public setZoom(properties: {
         scale: number,
         center?: number[]
     }) {
@@ -643,12 +775,16 @@ export class IvyPinch {
         this.moveX = this.initialMoveX - ((scalingPercent * xCenter) - xCenter);
         this.moveY = this.initialMoveY - ((scalingPercent * yCenter) - yCenter);
 
+        if (this.properties.fullImage) {
+            this.replaceImagePath();            
+        }
+
         this.centeringImage();
         this.updateInitialValues();
         this.transformElement(this.properties.transitionDuration);
     }
 
-    alignImage() {
+    public alignImage() {
         const isMoveChanged = this.centeringImage();
 
         if (isMoveChanged) {
@@ -657,7 +793,35 @@ export class IvyPinch {
         }
     }
 
-    destroy() {
+    public setTransform(properties: {
+        x ? : number,
+        y ? : number,
+        scale ? : number,
+        transitionDuration ? : number
+    }) {
+        const transitionDuration = properties.transitionDuration || this.properties.transitionDuration;
+
+        if (properties.x) {
+            this.moveX = properties.x;
+        }
+
+        if (properties.y) {
+            this.moveY = properties.y;
+        }
+
+        if (properties.scale) {
+            this.scale = properties.scale;
+        }
+
+        if (this.properties.fullImage) {
+            this.replaceImagePath();            
+        }
+
+        this.updateInitialValues();
+        this.transformElement(transitionDuration);
+    }
+
+    public destroy() {
         this.removeBasicStyles();
         this.touches.destroy();
     }

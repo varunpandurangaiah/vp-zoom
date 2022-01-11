@@ -126,7 +126,7 @@
         }
       }
     },
-    "ngx-pinch-zoom": {
+    "vp-zoom": {
       "projectType": "library",
       "root": "projects/ngx-pinch-zoom",
       "sourceRoot": "projects/ngx-pinch-zoom/src",

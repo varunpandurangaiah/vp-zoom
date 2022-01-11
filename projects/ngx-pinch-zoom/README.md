@@ -1,76 +1,24 @@
-# Pinch zoom for Angular
+# VpZoom
 
-<img src="https://badgen.net/bundlephobia/min/ngx-pinch-zoom" />
+This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.1.0.
 
-The module provides opportunities for image zooming in, zooming out and positioning with use of gestures on a touch screen. 
+## Code scaffolding
 
-Live demos and source code samples can be found on [home page](http://ivylab.space/pinch-zoom).
+Run `ng generate component component-name --project vp-zoom` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project vp-zoom`.
+> Note: Don't forget to add `--project vp-zoom` or else it will be added to the default project in your `angular.json` file. 
 
-🔬️ Help make Pinch zoom better by [answering a few questions](https://docs.google.com/forms/d/e/1FAIpQLSfDW_yLcKTlRzhUy3PMAFMgmsmy9cNyeML8hQ8rOgM3PEIKGA/viewform?usp=sf_link).
+## Build
 
-## Installation
+Run `ng build vp-zoom` to build the project. The build artifacts will be stored in the `dist/` directory.
 
-Install the npm package.
-```
-npm i ngx-pinch-zoom
-```
+## Publishing
 
-Import module:
-```ts
-import { PinchZoomModule } from 'ngx-pinch-zoom';
+After building your library with `ng build vp-zoom`, go to the dist folder `cd dist/vp-zoom` and run `npm publish`.
 
-@NgModule({
-    imports: [ PinchZoomModule ]
-})
-```
+## Running unit tests
 
-## Usage
-For use, put your image inside the &lt;pinch-zoom&gt; container. Please, pay attention to the parameters of your viewport metatag. If you use Pinch Zoom, it is required to limit zooming of a web-page, by entering the following parameters: &lt;meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"&gt;.
+Run `ng test vp-zoom` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-```html
-<pinch-zoom>
-    <img src="path_to_image" /> 
-</pinch-zoom>
-```
+## Further help
 
-## Properties
-
-| name             | type            | default | description                                 |
-|------------------|-----------------|---------|---------------------------------------------|
-| transition-duration | number       | 200     | Defines the speed of the animation of positioning and transforming.|
-| limit-zoom       | number, "original image size" | "original image size" | Limit the maximum available scale. By default, the maximum scale is calculated based on the original image size. |
-| minScale         | number          | 0       | Limit the minimum acceptable scale. With a value of 1, it is recommended to use this parameter with `limitPan` |
-| auto-zoom-out    | boolean         | false   | Automatic restoration of the original size of an image after its zooming in by two fingers.|
-| double-tap       | boolean         | true    | Zooming in and zooming out of an image, depending on its current condition, with double tap.|
-| disabled         | boolean         | false   | Disable zoom. |
-| disablePan       | boolean         | false   | Turn off panning with one finger. |
-| overflow         | "hidden", "visible" | "hidden" | `hidden` - the overflow is clipped, and the rest of the content will be invisible. `visible` - the overflow is not clipped. The content renders outside the element's box. |
-| disableZoomControl | "disable", "never", "auto" | "auto" | Disable zoom controls. `auto` - Disable zoom controls on touch screen devices. `never` - show zoom controls on all devices. `disable` - disable zoom controls on all devices. |
-| zoomControlScale | number          | 1       | Zoom factor when using zoom controls. |
-| backgroundColor  | string          | "rgba(0,0,0,0.85)" | The background color of the container. |
-| limitPan         | boolean         | false   | Stop panning when the edge of the image reaches the edge of the screen. |
-| minPanScale      | number          | 1.0001  | Minimum zoom at which panning is enabled. |
-| listeners        | "auto", "mouse and touch" | "mouse and touch" | By default, subscriptions are made for mouse and touch screen events. The value `auto` means that the subscription will be only for touch events or only for mouse events, depending on the type of screen. |
-| wheel            | boolean         | true    | Scale with the mouse wheel. |
-| wheelZoomFactor  | number          | 0.2     | Zoom factor when zoomed in with the mouse wheel. |
-| autoHeight       | boolean         | false   | Calculate the height of the container based on the `width` and `height` attributes of the image. By default, the width of the container is 100%, and the height is determined after the image information is loaded - this may cause a delay in determining the height of the container. If you want the container to initially have dimensions corresponding to the dimensions of the image, then specify the attributes `width` and `height` for the `<img>` tag. When setting the property value to `true`, a subscription to the window resize listener will be created. |
-| draggableImage   | boolean         | false   | Sets the attribute `draggable` to the `<img>` tag. |
-
-## Methods
-
-| name                    | description                                 |
-|-------------------------|---------------------------------------------|
-| toggleZoom()            | Image zooming in and out, depending on its current state. |
-| destroy()               | Unsubscribe from mouse events and touches, as well as remove added styles from the DOM tree. |
-
-See the full documentation and examples on the [home page](http://ivylab.space/pinch-zoom).
-
-## Author services
-
-Are you interested in this library but lacks features? [Write to the author](https://github.com/drozhzhin-n-e), he can do it for you.
-
-## Sponsors
-
-Tested using Browserstack
-
-[![Browserstack](http://ivylab.space/assets/img/browserstack-logo.png)](http://browserstack.com/)
+To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.

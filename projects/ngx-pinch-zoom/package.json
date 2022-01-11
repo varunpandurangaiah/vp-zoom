@@ -1,28 +1,29 @@
 {
-  "name": "ngx-pinch-zoom",
-  "version": "2.5.5",
-  "description": "Pinch zoom component for Angular.",
+  "name": "vp-zoom",
+  "version": "1.0.10",
+  "description": "VP Delta zoom component for Angular.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drozhzhin-n-e/ngx-pinch-zoom.git"
+    "url": "git+https://github.com/varunpandurangaiah"
   },
   "author": {
-    "name": "Nikita Drozhzhin",
-    "email": "drozhzhin.n.e@gmail.com"
+    "name": "Varun Pandurangaiah",
+    "email": "me@varunpandurangaiah.com"
   },
-  "homepage": "http://ivylab.space/pinch-zoom",
+  "homepage": "https://varunpandurangaiah.com",
   "keywords": [
     "Angular",
     "Angular 2",
     "ngx",
     "ng2",
-    "Pinch zoom",
+    "VP zoom",
     "Image zoom",
-    "Touch image zoom"
+    "Touch image zoom",
+    "Ionic Zoom"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/drozhzhin-n-e/ngx-pinch-zoom/issues"
+    "url": "https://github.com/varunpandurangaiah"
   },
   "peerDependencies": {
     "@angular/common": "^11.1.2",

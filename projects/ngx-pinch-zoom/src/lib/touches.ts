@@ -78,7 +78,7 @@ export class Touches {
         if (this.properties.resize) {
             listeners = Object.assign(listeners, this.otherListeners);
         }
-
+        
         for (var listener in listeners) {
             const handler: MouseHandler = listeners[listener];
 
@@ -318,9 +318,9 @@ export class Touches {
 
         if (tapLength > 0) {
             if (tapLength < this.tapMinTimeout) {
-                this.runHandler("tap", {});
+                this.runHandler("tap", event);
             } else {
-                this.runHandler("longtap", {});
+                this.runHandler("longtap", event);
             }
         }
     }
