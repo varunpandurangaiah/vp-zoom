@@ -1,7 +1,9 @@
 # VpZoom
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.1.0.
+This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.1.0.
 
+# Contributor
+Varun P <varunp5814@gmail.com>
 ## Code scaffolding
 
 Run `ng generate component component-name --project vp-zoom` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project vp-zoom`.
