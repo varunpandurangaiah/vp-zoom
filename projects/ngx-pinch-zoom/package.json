@@ -4,7 +4,7 @@
   "description": "VP Delta zoom component for Angular.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/varunpandurangaiah"
+    "url": "git+https://github.com/varunpandurangaiah/vp-zoom"
   },
   "author": {
     "name": "Varun Pandurangaiah",
@@ -23,7 +23,7 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/varunpandurangaiah"
+    "url": "https://github.com/varunpandurangaiah/vp-zoom/issues"
   },
   "peerDependencies": {
     "@angular/common": "^11.1.2",
